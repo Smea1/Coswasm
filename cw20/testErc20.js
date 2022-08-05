@@ -24,13 +24,22 @@ async function main() {
       rpcEndpoint,
       wallet,
     );
+
+    const client2 = await wasm.SigningCosmWasmClient.connectWithSigner(
+      rpcEndpoint,
+      wallet2,
+    );
     
     //get sender
     var accs = await wallet.getAccounts()
-    
     var sender = accs[0].address
+
+    var bobWallet = await wallet2.getAccounts()
+    var bob = bobWallet[0].address
+
     var receiver = "ex14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s6fqu27"
     console.log("sender is: ", sender)
+    console.log("bob is: ", bob)
     console.log("receiver is: ", receiver)
 
     //get contract code
@@ -46,18 +55,26 @@ async function main() {
     console.log(contractCode)
     var initBalance = [{"address":"ex1eutyuqqase3eyvwe92caw8dcx5ly8s544q3hmq","amount":"100000000000000000000"}]
     //init contract
-    var initMsg = {"name":"USDT","symbol":"USDT","decimals":"18","initial_balances":initBalance};
+    var initMsg = {"name":"USDT","symbol":"USDT","decimals":9,"initial_balances":initBalance};
     var res2 = await client.instantiate(sender, contractCode.codeId, initMsg, "init usdt token", {"amount":wasm.parseCoins("200000000000000000wei"),"gas":"20000000"},{"funds":[{"denom":"okt","amount":"100"}],"admin":sender})
     console.log(res2)
     
-    // var registerMsg = {"register":{"name":"sameal"}};
-    // var res3 = await client.execute(sender, res2.contractAddress, registerMsg,  {"amount":wasm.parseCoins("200000000000000000wei"),"gas":"20000000"},'',[stargate.coin(200, "okt")])
-    // console.log(res3)
+    var approveMsg = {"approve":{"spender":bob,"amount":"100"}};
+    var res3 = await client.execute(sender, res2.contractAddress, approveMsg,  {"amount":wasm.parseCoins("200000000000000000wei"),"gas":"20000000"},'')
+    console.log(res3)
 
-    // var transMsg = {"transfer":{"name":"sameal","to":receiver}};
-    // var res4 = await client.execute(sender, res2.contractAddress, transMsg,  {"amount":wasm.parseCoins("200000000000000000wei"),"gas":"20000000"},'',[stargate.coin(100, "okt")])
-    // console.log(res4)
+    var transMsg = {"transfer":{"recipient":receiver,"amount":"100"}};
+    var res4 = await client.execute(sender, res2.contractAddress, transMsg,  {"amount":wasm.parseCoins("200000000000000000wei"),"gas":"20000000"},'')
+    console.log(res4)
 
+    var transFromMsg = {"transfer_from":{"owner":sender,"recipient":receiver,"amount":"100"}};
+    var res5 = await client2.execute(sender, res2.contractAddress, transFromMsg,  {"amount":wasm.parseCoins("200000000000000000wei"),"gas":"20000000"},'')
+    console.log(res5)
+
+    
+    var res6= await client.queryContractSmart(res2.contractAddress,{"balance":{"address":sender}})
+    var res7= await client.queryContractSmart(res2.contractAddress,{"balance":{"address":receiver}})
+    console.log(res6,res7)
 
     console.log("end")
   }
