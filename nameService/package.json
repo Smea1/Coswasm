@@ -1,0 +1,15 @@
+{
+  "name": "nameserve",
+  "version": "1.0.0",
+  "description": "",
+  "main": "testNameServe.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@cosmjs/stargate": "^0.28.11",
+    "cosmwasm": "^1.1.1"
+  }
+}
